@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#102a43">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Almada Attendance">
+<title>Almada Attendance</title>
+<style>
+:root{--navy:#102a43;--blue:#1769aa;--pale:#eef5fb;--ink:#1d2939;--muted:#667085;--line:#e4e7ec;--green:#067647;--red:#b42318;--white:#fff}
+*{box-sizing:border-box}body{margin:0;background:#f5f7fa;color:var(--ink);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+header{background:var(--navy);color:white;padding:18px max(18px,calc((100vw - 1180px)/2));display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}.logo{width:42px;height:42px;border-radius:12px;background:#fff;color:var(--navy);display:grid;place-items:center;font-weight:900;font-size:18px}.brand h1{font-size:20px;margin:0}.brand p{margin:2px 0 0;color:#d3e3f2;font-size:12px}
+.wrap{max-width:1180px;margin:24px auto;padding:0 16px}.notice{background:#fff8e6;border:1px solid #f4d28b;color:#7a4b00;border-radius:12px;padding:12px 14px;margin-bottom:18px;font-size:13px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}.tab,button{border:0;border-radius:9px;padding:10px 14px;font-weight:650;cursor:pointer;font-size:14px}.tab{background:#e8edf3;color:#344054}.tab.active{background:var(--navy);color:white}button.primary{background:var(--blue);color:white}button.secondary{background:#e8edf3;color:#243b53}button.danger{background:#fee4e2;color:#912018}button:disabled{opacity:.5;cursor:not-allowed}
+.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px}.card{background:white;border:1px solid var(--line);border-radius:15px;padding:18px;box-shadow:0 2px 5px #10182808}.span-12{grid-column:span 12}.span-8{grid-column:span 8}.span-7{grid-column:span 7}.span-6{grid-column:span 6}.span-5{grid-column:span 5}.span-4{grid-column:span 4}
+h2{font-size:18px;margin:0 0 14px}h3{font-size:15px;margin:0 0 8px}.muted{color:var(--muted);font-size:13px}.metric{font-size:28px;font-weight:800;letter-spacing:-.6px}.metric-label{font-size:13px;color:var(--muted)}label{display:block;font-size:13px;font-weight:650;margin:0 0 6px}input,select{font:inherit;width:100%;padding:10px 11px;border:1px solid #d0d5dd;border-radius:9px;background:white;color:var(--ink)}input[type=file]{padding:8px;font-size:13px}input[type=checkbox]{width:auto}
+.field{margin-bottom:13px}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.row>*{flex:1}.row .fit{flex:0 0 auto}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.status{display:inline-block;padding:4px 8px;border-radius:20px;font-size:12px;font-weight:700;background:#ecfdf3;color:var(--green)}.status.off{background:#f2f4f7;color:#475467}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle}th{font-size:12px;color:#475467;background:#f9fafb}td img{width:42px;height:42px;object-fit:cover;border-radius:7px}.table-wrap{overflow:auto}.empty{text-align:center;padding:25px;color:var(--muted)}.hidden{display:none!important}.foot{color:var(--muted);font-size:12px;margin:22px 0 8px}.small-btn{padding:6px 9px;font-size:12px}
+@media(max-width:760px){.span-8,.span-7,.span-6,.span-5,.span-4{grid-column:span 12}.wrap{margin:16px auto}.card{padding:15px}header{padding:15px}.brand h1{font-size:18px}.metric{font-size:24px}th,td{padding:8px 6px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><div class="logo">A</div><div><h1>Almada Attendance</h1><p>ALMADA · Employee time & site attendance</p></div></div>
+  <div class="row" style="max-width:320px"><label for="currentUser" style="color:#fff;margin:0;white-space:nowrap">Working as</label><select id="currentUser" aria-label="Select demo user"><option value="admin">Admin</option><option value="supervisor">Supervisor</option><option value="employee">Employee</option></select></div>
+</header>
+<main class="wrap">
+  <div class="notice"><strong>Prototype notice:</strong> This version saves data only in this browser on this device. It is useful for testing the workflow, but it is not yet a secure shared company system. Do not use real employee photos or sensitive records until secure login, server database, access controls and privacy notices are configured.</div>
+  <nav class="tabs" aria-label="Main navigation">
+    <button class="tab active" data-view="attendance">Attendance</button><button class="tab" data-view="reports">Reports</button><button class="tab" data-view="sites">Work sites</button><button class="tab" data-view="employees">Employees</button>
+  </nav>
+
+  <section id="view-attendance">
+    <div class="grid">
+      <div class="card span-4"><div class="metric" id="todayCount">0</div><div class="metric-label">Attendance records today</div></div>
+      <div class="card span-4"><div class="metric" id="checkedInCount">0</div><div class="metric-label">Currently checked in</div></div>
+      <div class="card span-4"><div class="metric" id="siteCount">0</div><div class="metric-label">Registered work sites</div></div>
+      <div class="card span-7">
+        <h2>Clock in / clock out</h2>
+        <p class="muted">Choose your name and registered work site. A selfie and GPS position are requested when you clock in or out.</p>
+        <div class="field"><label for="employeeSelect">Employee</label><select id="employeeSelect"></select></div>
+        <div class="field"><label for="siteSelect">Work site</label><select id="siteSelect"></select></div>
+        <div class="field"><label for="selfie">Selfie photo</label><input id="selfie" type="file" accept="image/*" capture="user"><div class="muted" style="margin-top:5px">On a phone, this usually opens the front camera. Browser camera/GPS permissions may be required.</div></div>
+        <div class="field"><label for="note">Note (optional)</label><input id="note" maxlength="180" placeholder="e.g. CCTV installation visit"></div>
+        <div class="row"><div><label>GPS status</label><div id="gpsStatus" class="muted">Not captured yet</div></div><button id="gpsBtn" class="secondary fit" type="button">Get GPS</button></div>
+        <div class="actions"><button id="checkInBtn" class="primary">Check In</button><button id="checkOutBtn" class="secondary">Check Out</button></div>
+        <div id="actionMessage" class="muted" role="status" style="margin-top:10px"></div>
+      </div>
+      <div class="card span-5">
+        <h2>Current attendance</h2><div id="currentStatus" class="empty">Select an employee to see their status.</div>
+        <hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
+        <h3>Today's latest activity</h3><div id="recentList" class="muted">No activity yet.</div>
+      </div>
+      <div class="card span-12"><h2>Today's attendance</h2><div id="todayTable" class="table-wrap"></div></div>
+    </div>
+  </section>
+
+  <section id="view-reports" class="hidden">
+    <div class="card">
+      <h2>Attendance reports</h2><p class="muted">Filter records by date range, employee or site. Export the filtered records to a CSV file that opens in Excel.</p>
+      <div class="grid">
+        <div class="span-4 field"><label for="fromDate">From date</label><input type="date" id="fromDate"></div>
+        <div class="span-4 field"><label for="toDate">To date</label><input type="date" id="toDate"></div>
+        <div class="span-4 field"><label for="reportEmployee">Employee</label><select id="reportEmployee"></select></div>
+        <div class="span-4 field"><label for="reportSite">Work site</label><select id="reportSite"></select></div>
+        <div class="span-8 actions" style="align-items:end"><button id="applyReport" class="primary">Apply filters</button><button id="exportBtn" class="secondary">Export to Excel (CSV)</button></div>
+      </div>
+      <div id="reportSummary" class="muted" style="margin:8px 0 12px"></div><div id="reportTable" class="table-wrap"></div>
+    </div>
+  </section>
+
+  <section id="view-sites" class="hidden">
+    <div class="grid">
+      <div class="card span-5" id="siteFormCard"><h2>Add work site</h2><div class="field"><label for="siteName">Site name</label><input id="siteName" placeholder="e.g. Enma Mall"></div><div class="field"><label for="siteAddress">Address / area</label><input id="siteAddress" placeholder="e.g. Riffa, Bahrain"></div><div class="field"><label for="siteRadius">Geofence radius (metres)</label><input id="siteRadius" type="number" min="50" max="5000" value="200"></div><button id="addSiteBtn" class="primary">Add site</button><p class="muted">This prototype records GPS but does not enforce a geofence. Production version should validate distance on a server.</p></div>
+      <div class="card span-7"><h2>Registered work sites</h2><div id="sitesTable" class="table-wrap"></div></div>
+    </div>
+  </section>
+
+  <section id="view-employees" class="hidden">
+    <div class="grid">
+      <div class="card span-5" id="employeeFormCard"><h2>Add employee</h2><div class="field"><label for="empName">Full name</label><input id="empName" placeholder="Employee name"></div><div class="field"><label for="empId">Employee ID</label><input id="empId" placeholder="e.g. ALM-001"></div><div class="field"><label for="empRole">Role</label><select id="empRole"><option value="Employee">Employee</option><option value="Supervisor">Supervisor</option><option value="Admin">Admin</option></select></div><button id="addEmployeeBtn" class="primary">Add employee</button><p class="muted">Demo records are not protected by individual passwords. Add secure authentication before company use.</p></div>
+      <div class="card span-7"><h2>Employee list</h2><div id="employeesTable" class="table-wrap"></div></div>
+    </div>
+  </section>
+  <p class="foot">Almada Attendance · Prototype · English · Bahrain time zone (Asia/Bahrain)</p>
+</main>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const todayISO=()=>{const d=new Date();return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bahrain',year:'numeric',month:'2-digit',day:'2-digit'}).format(d)};
+const stamp=()=>new Date().toLocaleString('en-GB',{timeZone:'Asia/Bahrain',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+const dayOf=r=>r.day||r.timestamp?.slice(0,10)||'';
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const read=(k,def)=>{try{return JSON.parse(localStorage.getItem('almada_'+k))??def}catch{return def}};
+const save=(k,v)=>localStorage.setItem('almada_'+k,JSON.stringify(v));
+let sites=read('sites',[{id:1,name:'Head Office',address:'Bahrain',radius:200},{id:2,name:'Moda Mall',address:'Manama, Bahrain',radius:200},{id:3,name:'Enma Mall',address:'Bahrain',radius:200}]);
+let employees=read('employees',[{id:'ALM-001',name:'Demo Employee',role:'Employee'},{id:'ALM-002',name:'Demo Supervisor',role:'Supervisor'}]);
+let records=read('records',[]);
+let gps=null, selfieData='';
+function persist(){save('sites',sites);save('employees',employees);save('records',records)}
+function currentUser(){return $('currentUser').value}
+function canManage(){return ['admin','supervisor'].includes(currentUser())}
+function setMessage(t){$('actionMessage').textContent=t}
+function fmtTime(t){return t||'—'}
+function selectedEmp(){return employees.find(e=>e.id===$('employeeSelect').value)}
+function openRecord(id){return records.find(r=>r.employeeId===id&&!r.checkOut)}
+function selectOptions(el,items,firstLabel,selected){el.innerHTML=(firstLabel?`<option value="">${esc(firstLabel)}</option>`:'')+items.map(x=>`<option value="${esc(x.value)}">${esc(x.label)}</option>`).join('');if(selected)el.value=selected}
+function refreshSelects(){
+ selectOptions($('employeeSelect'),employees.map(e=>({value:e.id,label:e.name+' ('+e.id+')'})),'Choose employee',employees[0]?.id);
+ selectOptions($('siteSelect'),sites.map(s=>({value:s.id,label:s.name+' — '+s.address})),'Choose work site',sites[0]?.id);
+ selectOptions($('reportEmployee'),employees.map(e=>({value:e.id,label:e.name+' ('+e.id+')'})),'All employees','');
+ selectOptions($('reportSite'),sites.map(s=>({value:s.id,label:s.name})),'All sites','');
+}
+function todayRecords(){return records.filter(r=>r.day===todayISO())}
+function renderDashboard(){
+ $('todayCount').textContent=todayRecords().length;
+ $('checkedInCount').textContent=records.filter(r=>!r.checkOut).length;
+ $('siteCount').textContent=sites.length;
+ const emp=selectedEmp(), active=emp&&openRecord(emp.id);
+ $('currentStatus').innerHTML=emp?`<strong>${esc(emp.name)}</strong><p>${active?'<span class="status">Checked in</span>':'<span class="status off">Not currently checked in</span>'}</p>${active?`<div class="muted">Site: ${esc(active.siteName)}<br>Since: ${esc(active.checkIn)}</div>`:'<div class="muted">No active shift for this employee.</div>'}`:'Select an employee to see their status.';
+ const recent=todayRecords().slice().reverse().slice(0,5);
+ $('recentList').innerHTML=recent.length?recent.map(r=>`<div style="padding:7px 0;border-bottom:1px solid var(--line)"><strong>${esc(r.employeeName)}</strong><br>${esc(r.siteName)} · ${esc(r.checkIn)}${r.checkOut?' → '+esc(r.checkOut):' · <span class="status">On duty</span>'}</div>`).join(''):'No activity yet.';
+ const list=todayRecords().slice().reverse();
+ $('todayTable').innerHTML=list.length?`<table><thead><tr><th>Employee</th><th>Site</th><th>Check in</th><th>Check out</th><th>GPS</th><th>Selfie</th></tr></thead><tbody>${list.map(r=>`<tr><td>${esc(r.employeeName)}<br><span class="muted">${esc(r.employeeId)}</span></td><td>${esc(r.siteName)}</td><td>${esc(r.checkIn)}</td><td>${esc(r.checkOut||'—')}</td><td>${r.checkInLat!=null?`<a target="_blank" rel="noopener" href="https://maps.google.com/?q=${r.checkInLat},${r.checkInLon}">View map</a>`:'—'}</td><td>${r.selfie?`<img src="${r.selfie}" alt="Attendance selfie">`:'—'}</td></tr>`).join('')}</tbody></table>`:'<div class="empty">No attendance records today.</div>';
+}
+function renderSites(){
+ $('sitesTable').innerHTML=sites.length?`<table><thead><tr><th>Site</th><th>Address / area</th><th>Radius</th><th></th></tr></thead><tbody>${sites.map(s=>`<tr><td><strong>${esc(s.name)}</strong></td><td>${esc(s.address)}</td><td>${s.radius} m</td><td><button class="danger small-btn" data-delete-site="${s.id}">Delete</button></td></tr>`).join('')}</tbody></table>`:'<div class="empty">No sites registered.</div>';
+ document.querySelectorAll('[data-delete-site]').forEach(b=>b.onclick=()=>{if(!canManage())return alert('Admin or supervisor access required.');const id=Number(b.dataset.deleteSite);if(confirm('Delete this site? Existing records will remain.')){sites=sites.filter(s=>s.id!==id);persist();refreshSelects();renderAll()}});
+}
+function renderEmployees(){
+ $('employeesTable').innerHTML=employees.length?`<table><thead><tr><th>Employee</th><th>ID</th><th>Role</th><th></th></tr></thead><tbody>${employees.map(e=>`<tr><td>${esc(e.name)}</td><td>${esc(e.id)}</td><td>${esc(e.role)}</td><td><button class="danger small-btn" data-delete-emp="${esc(e.id)}">Delete</button></td></tr>`).join('')}</tbody></table>`:'<div class="empty">No employees registered.</div>';
+ document.querySelectorAll('[data-delete-emp]').forEach(b=>b.onclick=()=>{if(!canManage())return alert('Admin or supervisor access required.');const id=b.dataset.deleteEmp;if(records.some(r=>r.employeeId===id&&!r.checkOut))return alert('This employee has an open shift. Check out first.');if(confirm('Delete this employee? Existing attendance records will remain.')){employees=employees.filter(e=>e.id!==id);persist();refreshSelects();renderAll()}});
+}
+function filteredRecords(){
+ const from=$('fromDate').value,to=$('toDate').value,emp=$('reportEmployee').value,site=$('reportSite').value;
+ return records.filter(r=>(!from||r.day>=from)&&(!to||r.day<=to)&&(!emp||r.employeeId===emp)&&(!site||String(r.siteId)===site)).sort((a,b)=>(a.day+a.checkIn).localeCompare(b.day+b.checkIn));
+}
+function renderReports(){
+ const list=filteredRecords();
+ const totalMinutes=list.reduce((n,r)=>n+(r.durationMinutes||0),0);
+ $('reportSummary').textContent=`${list.length} attendance shift(s) · ${Math.floor(totalMinutes/60)}h ${totalMinutes%60}m recorded duration (only completed shifts count).`;
+ $('reportTable').innerHTML=list.length?`<table><thead><tr><th>Date</th><th>Employee</th><th>Site</th><th>Check in</th><th>Check out</th><th>Duration</th><th>Note</th></tr></thead><tbody>${list.map(r=>`<tr><td>${esc(r.day)}</td><td>${esc(r.employeeName)}</td><td>${esc(r.siteName)}</td><td>${esc(r.checkIn)}</td><td>${esc(r.checkOut||'—')}</td><td>${r.durationMinutes==null?'—':Math.floor(r.durationMinutes/60)+'h '+r.durationMinutes%60+'m'}</td><td>${esc(r.note||'')}</td></tr>`).join('')}</tbody></table>`:'<div class="empty">No records match these filters.</div>';
+}
+function renderAll(){renderDashboard();renderSites();renderEmployees();renderReports();$('siteCount').textContent=sites.length}
+function getGPS(){
+ if(!navigator.geolocation){$('gpsStatus').textContent='GPS is not supported by this browser.';return}
+ $('gpsStatus').textContent='Requesting location…';
+ navigator.geolocation.getCurrentPosition(p=>{gps={lat:p.coords.latitude,lon:p.coords.longitude,accuracy:Math.round(p.coords.accuracy)};$('gpsStatus').textContent=`Captured: ${gps.lat.toFixed(5)}, ${gps.lon.toFixed(5)} (±${gps.accuracy} m)`},e=>{$('gpsStatus').textContent='Location unavailable: '+e.message},{enableHighAccuracy:true,timeout:15000,maximumAge:0});
+}
+function check(inOrOut){
+ const emp=selectedEmp(),site=sites.find(s=>String(s.id)===$('siteSelect').value);
+ if(!emp)return setMessage('Please select an employee.');
+ if(!site)return setMessage('Please register and select a work site.');
+ if(!gps)return setMessage('Please capture GPS location before attendance.');
+ if(!selfieData)return setMessage('Please take or select a selfie before attendance.');
+ let active=openRecord(emp.id);
+ if(inOrOut==='in'){
+  if(active)return setMessage('This employee is already checked in. Please check out first.');
+  const now=new Date(),day=todayISO();
+  records.push({id:Date.now(),day,employeeId:emp.id,employeeName:emp.name,siteId:site.id,siteName:site.name,checkIn:stamp(),checkOut:'',checkInLat:gps.lat,checkInLon:gps.lon,checkInAccuracy:gps.accuracy,selfie:selfieData,note:$('note').value.trim(),durationMinutes:null});
+  setMessage('Check-in recorded successfully on this device.');
+ }else{
+  if(!active)return setMessage('No open shift found for this employee.');
+  active.checkOut=stamp();active.checkOutLat=gps.lat;active.checkOutLon=gps.lon;active.checkOutAccuracy=gps.accuracy;
+  const start=new Date(active.day+'T00:00:00'); // duration is calculated from Bahrain-local displayed times below
+  const parse=(s)=>{const m=s.match(/(\d{2})\/(\d{2})\/(\d{4}),?\s*(\d{2}):(\d{2}):(\d{2})/);return m?new Date(+m[3],+m[2]-1,+m[1],+m[4],+m[5],+m[6]):null};
+  const a=parse(active.checkIn),b=parse(active.checkOut);active.durationMinutes=a&&b?Math.max(0,Math.round((b-a)/60000)):null;
+  active.note=active.note||$('note').value.trim();
+  setMessage('Check-out recorded successfully on this device.');
+ }
+ persist();renderAll();$('selfie').value='';selfieData='';gps=null;$('gpsStatus').textContent='Not captured yet';$('note').value='';
+}
+function exportCSV(){
+ const rows=filteredRecords(),headers=['Date','Employee ID','Employee Name','Site','Check In','Check Out','Duration Minutes','Note','Check In Latitude','Check In Longitude','Check Out Latitude','Check Out Longitude'];
+ const val=v=>{let s=String(v??'');if(/[",\r\n]/.test(s))s='"'+s.replace(/"/g,'""')+'"';return s};
+ const lines=[headers,...rows.map(r=>[r.day,r.employeeId,r.employeeName,r.siteName,r.checkIn,r.checkOut,r.durationMinutes,r.note,r.checkInLat,r.checkInLon,r.checkOutLat,r.checkOutLon])].map(row=>row.map(val).join(','));
+ const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8;'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='almada-attendance-'+todayISO()+'.csv';a.click();URL.revokeObjectURL(url);
+}
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));['attendance','reports','sites','employees'].forEach(v=>$('view-'+v).classList.toggle('hidden',v!==b.dataset.view));if(b.dataset.view==='reports')renderReports()}));
+$('currentUser').addEventListener('change',()=>{const manage=canManage();$('siteFormCard').classList.toggle('hidden',!manage);$('employeeFormCard').classList.toggle('hidden',!manage);renderAll()});
+$('gpsBtn').onclick=getGPS;
+$('selfie').addEventListener('change',e=>{const file=e.target.files?.[0];if(!file){selfieData='';return}if(file.size>3*1024*1024){setMessage('Please use a photo smaller than 3 MB.');e.target.value='';return}const reader=new FileReader();reader.onload=()=>{selfieData=reader.result;setMessage('Selfie ready. Remember to capture GPS too.')};reader.readAsDataURL(file)});
+$('checkInBtn').onclick=()=>check('in');$('checkOutBtn').onclick=()=>check('out');$('employeeSelect').addEventListener('change',renderDashboard);
+$('addSiteBtn').onclick=()=>{if(!canManage())return alert('Admin or supervisor access required.');const name=$('siteName').value.trim(),address=$('siteAddress').value.trim(),radius=Number($('siteRadius').value)||200;if(!name||!address)return alert('Enter the site name and address.');sites.push({id:Date.now(),name,address,radius:Math.max(50,Math.min(5000,radius))});persist();$('siteName').value='';$('siteAddress').value='';refreshSelects();renderAll()};
+$('addEmployeeBtn').onclick=()=>{if(!canManage())return alert('Admin or supervisor access required.');const name=$('empName').value.trim(),id=$('empId').value.trim(),role=$('empRole').value;if(!name||!id)return alert('Enter employee name and ID.');if(employees.some(e=>e.id.toLowerCase()===id.toLowerCase()))return alert('That employee ID already exists.');employees.push({name,id,role});persist();$('empName').value='';$('empId').value='';refreshSelects();renderAll()};
+$('applyReport').onclick=renderReports;$('exportBtn').onclick=exportCSV;
+$('fromDate').value=todayISO().slice(0,7)+'-01';$('toDate').value=todayISO();
+refreshSelects();renderAll();$('siteFormCard').classList.toggle('hidden',!canManage());$('employeeFormCard').classList.toggle('hidden',!canManage());
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch(() => {}));
+}
+</script>
+</body>
+</html>
